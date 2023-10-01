@@ -1,13 +1,10 @@
 # Active-Perception-using-Neural-Radiance-Fields
 ## Video of Active Perception in Habitat Simulation Scene
 ### Scene 1
-FPV:
 
-https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/5c88e99f-cb74-4b3d-8c08-6d76905c81e0
 
-TPV:
+https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/8c2e7619-af72-42e0-81b7-ede31b0f4c45
 
-https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/06f7f174-468e-4eea-b5b1-06a74f8a1933
 
 ### Scene 2
 FPV:
