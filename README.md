@@ -3,7 +3,7 @@
 ### Scene 1
 
 
-https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/8c2e7619-af72-42e0-81b7-ede31b0f4c45
+https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/1bbb3319-6d55-4b84-8893-ef6d246c94cd
 
 
 ### Scene 2
