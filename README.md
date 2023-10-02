@@ -7,13 +7,10 @@ https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/ass
 
 
 ### Scene 2
-FPV:
 
-https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/89e7ce83-224e-47b7-9645-e94435fd6af8
 
-TPV:
+https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/a9e75081-c2fb-4f99-b3b3-4cdc67379dcb
 
-https://github.com/grasp-lyrl/Active-Perception-using-Neural-Radiance-Fields/assets/69362937/7c505714-9824-47b8-ad76-085f63e2c671
 
 ### Scene 3
 FPV: 
