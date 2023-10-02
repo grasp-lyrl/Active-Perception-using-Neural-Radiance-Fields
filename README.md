@@ -1,5 +1,6 @@
 # Active-Perception-using-Neural-Radiance-Fields
 ## Video of Active Perception in Habitat Simulation Scene
+In each video, the third-person view and top view of active perception are shown on the left. The ground truth and NeRF synthesis of image, depth, and semantic segmentation in first-person view are shown on the right.
 ### Scene 1
 
 
