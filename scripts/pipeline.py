@@ -1,6 +1,3 @@
-# threading
-# from threading import Thread, Lock
-# TODO RUNTIME ERROR in /home/siminghe/miniconda3/envs/anmap/lib/python3.9/site-packages/nerfacc/estimators/occ_grid.py
 # general
 import argparse
 import pathlib
