@@ -1,4 +1,4 @@
-# Active-Perception-using-Neural-Radiance-Fields [Paper Link](https://arxiv.org/abs/2310.09892)
+# Active-Perception-using-Neural-Radiance-Fields ([Paper Link](https://arxiv.org/abs/2310.09892))
 Authors: Siming He, Christopher D. Hsu∗, Dexter Ong∗, Yifei Simon Shao, Pratik Chaudhari
 
 ## Video of Active Perception in Habitat Simulation Scene
