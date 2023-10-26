@@ -10,8 +10,6 @@ modified by: Siming He
 
 import matplotlib.pyplot as plt
 import math
-from ipdb import set_trace as st
-
 
 show_animation = False
 

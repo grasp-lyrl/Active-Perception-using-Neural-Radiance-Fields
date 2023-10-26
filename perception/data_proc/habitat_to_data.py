@@ -18,9 +18,6 @@ from utils import (
     render_probablistic_image_with_occgrid_test,
 )
 
-
-from ipdb import set_trace as st
-
 from scipy.spatial.transform import Rotation as R
 
 from matplotlib import pyplot as plt

@@ -12,9 +12,6 @@ from collections import deque
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ipdb import set_trace as st
-
-
 def file_read(f):
     """
     Reading LIDAR laser beams (angles and corresponding distance data)

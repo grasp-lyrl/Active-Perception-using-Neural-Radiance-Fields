@@ -12,9 +12,6 @@ from PIL import Image
 import habitat_sim
 import cv2
 
-from ipdb import set_trace as st
-
-
 class HabitatSim:
     def __init__(self, scene, scene_dataset_config_file, img_w, img_h):
         self._sim_settings = {

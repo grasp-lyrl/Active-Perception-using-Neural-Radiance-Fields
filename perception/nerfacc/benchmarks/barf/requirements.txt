@@ -7,7 +7,6 @@ tqdm
 termcolor
 easydict
 imageio
-ipdb
 tensorboard
 visdom
 matplotlib

@@ -11,7 +11,6 @@ import curses
 import sys
 import os
 import random
-from ipdb import set_trace as st
 
 import cv2
 import math

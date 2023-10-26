@@ -2,7 +2,6 @@ import cv2
 import os
 import glob
 import numpy as np
-from ipdb import set_trace as st
 import tqdm
 
 

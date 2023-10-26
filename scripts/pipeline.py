@@ -14,8 +14,6 @@ import curses
 import sys
 import os
 import random
-from ipdb import set_trace as st
-
 import math
 import numpy as np
 from scipy.spatial.transform import Rotation as R

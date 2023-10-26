@@ -4,7 +4,6 @@ import shutil
 import datetime
 import torch
 import torch.nn.functional as torch_F
-import ipdb
 import types
 import termcolor
 import socket
@@ -49,8 +48,6 @@ def pre_post_actions(pre=None,post=None):
             return retval
         return wrapper
     return func_decorator
-
-debug = ipdb.set_trace
 
 class Log:
     def __init__(self): pass
