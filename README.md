@@ -1,18 +1,6 @@
 # Active-Perception-using-Neural-Radiance-Fields
 Authors: Siming He, Christopher D. Hsu∗, Dexter Ong∗, Yifei Simon Shao, Pratik Chaudhari
 
-## Citation
-```
-@misc{he2023active,
-      title={Active Perception using Neural Radiance Fields}, 
-      author={Siming He and Christopher D. Hsu and Dexter Ong and Yifei Simon Shao and Pratik Chaudhari},
-      year={2023},
-      eprint={2310.09892},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
-}
-```
-
 ## Video of Active Perception in Habitat Simulation Scene
 In each video, the third-person view and top view of active perception are shown on the left. The ground truth and NeRF synthesis of image, depth, and semantic segmentation in first-person view are shown on the right. During each trajectory, the NeRF synthesis result looks bad because the agent is moving to areas with higher predictive information (usually areas with less reconstruction quality). After each trajectory, the NeRF is trained on collected observations and the NeRF synthesis result becomes better.  
 ### Scene 1
@@ -88,3 +76,14 @@ Data will be saved in the `data/habitat_collection/`:
 	uncertainty.npy stores the predictive information during active perception
 ```
 
+## Citation
+```
+@misc{he2023active,
+      title={Active Perception using Neural Radiance Fields}, 
+      author={Siming He and Christopher D. Hsu and Dexter Ong and Yifei Simon Shao and Pratik Chaudhari},
+      year={2023},
+      eprint={2310.09892},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
