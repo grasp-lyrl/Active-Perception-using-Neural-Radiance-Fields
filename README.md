@@ -33,7 +33,7 @@ conda activate anmap
 python -m pip install --upgrade pip
 
 # habitat
-conda install habitat-sim withbullet -c conda-forge -c aihabitat -y
+conda install habitat-sim=0.2.5 withbullet -c conda-forge -c aihabitat -y
 
 # install PyTorch 2.0.1 with CUDA 11.8:
 pip uninstall torch torchvision functorch tinycudann
