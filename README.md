@@ -47,16 +47,18 @@ pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindi
 pip install -e planning/rotorpy
 
 # other requirements
-pip install scikit-image lpips opencv-python PyYAML
-
+conda install scikit-image PyYAML imageio tqdm scipy rich
+pip install lpips opencv-python
 ```
 ### Download habitat data
 ```
-# extract to data/scene_datasets/hssd-hab
+# extract to data/scene_datasets/
 https://drive.google.com/file/d/1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp/view?usp=drive_link
 
 # you can do so by gdown
 pip install gdown
+mkdir -p data/scene_datasets/
+cd data/scene_datasets/
 gdown https://drive.google.com/uc?id=1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp
 unzip hssd-hab.zip
 ```
