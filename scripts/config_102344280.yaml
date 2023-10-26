@@ -1,0 +1,101 @@
+save_path: data/habitat_collection
+cuda: cuda:0
+init_batch_size: 1024
+target_sample_batch_size: 262144
+weight_decay: 0.0
+aabb:
+- -13
+- -0.2
+- -13
+- 14
+- 4.2
+- 15
+near_plane: 0.1
+far_plane: 10000000000.0
+main_grid_nlvl: 1
+main_grid_size: 0.2
+main_neurons: 128
+main_layer: 2
+minor_grid_nlvl: 1
+minor_grid_size: 0.2
+minor_neurons: 64
+minor_layer: 2
+planning_step: 25
+num_traj: 20
+sample_disc: 30
+training_steps: 2000
+render_step_size: 0.001
+alpha_thre: 0.01
+cone_angle: 0.004
+n_ensembles: 2
+img_w: 640
+img_h: 640
+hfov: 1.5707963267948966
+global_origin:
+- 1
+- 1.5
+- 3
+- 0.0
+- 0.0
+- 0.0
+- 1.0
+test_loc:
+- - -1.0
+  - 1.5
+  - -1
+- - -2.5
+  - 1.5
+  - -4.0
+- - -6.0
+  - 1.5
+  - -1.0
+- - -4.0
+  - 1.5
+  - -1.0
+- - -10.5
+  - 1.5
+  - -2.0
+- - -16.0
+  - 1.5
+  - -3.0
+- - -11.5
+  - 1.5
+  - -8.0
+- - -12.0
+  - 1.5
+  - -4.0
+- - -7.0
+  - 1.5
+  - -7.5
+- - -6.0
+  - 1.5
+  - -5.0
+- - -5.0
+  - 1.5
+  - -13.5
+- - -1.0
+  - 1.5
+  - -11.0
+- - -1.0
+  - 1.5
+  - -8.0
+- - -1.34356553
+  - 1.5
+  - -14.48768834
+test_quat:
+- - 0
+  - 0
+  - 0
+  - 1
+- - 0
+  - 0.707
+  - 0
+  - 0.707
+- - 0
+  - 1
+  - 0
+  - 0
+- - 0
+  - 0.707
+  - 0
+  - -0.707

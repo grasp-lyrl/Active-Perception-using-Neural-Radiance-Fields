@@ -1,0 +1,8 @@
+cvxopt
+matplotlib==3.2.2
+filterpy==1.4.5
+numpy
+scipy
+pandas
+ndsplines
+timeout_decorator

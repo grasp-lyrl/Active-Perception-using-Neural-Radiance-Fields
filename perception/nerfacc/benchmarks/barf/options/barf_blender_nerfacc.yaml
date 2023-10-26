@@ -1,0 +1,6 @@
+_parent_: options/barf_blender.yaml
+
+nerf:
+  occ_grid_reso: 128
+  # = (6 - 2) / 128
+  occ_step_size: 0.03

@@ -1,0 +1,12 @@
+LICENSE.md
+README.md
+setup.py
+rotorpy/__init__.py
+rotorpy/environments.py
+rotorpy/simulate.py
+rotorpy/world.py
+rotorpy.egg-info/PKG-INFO
+rotorpy.egg-info/SOURCES.txt
+rotorpy.egg-info/dependency_links.txt
+rotorpy.egg-info/requires.txt
+rotorpy.egg-info/top_level.txt

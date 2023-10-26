@@ -1,0 +1,14 @@
+torch==1.13.1
+torchvision==0.14.1
+tqdm
+scikit-image
+opencv-python
+configargparse
+lpips
+imageio-ffmpeg
+kornia
+lpips
+tensorboard
+plyfile
+nerfacc==0.5.0
+ninja

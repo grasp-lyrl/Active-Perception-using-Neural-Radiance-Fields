@@ -1,0 +1,21 @@
+-f https://download.pytorch.org/whl/cu117
+torch==1.13.1
+torchvision==0.14.1
+numpy
+scipy
+tqdm
+termcolor
+easydict
+imageio
+ipdb
+tensorboard
+visdom
+matplotlib
+scikit-video
+trimesh
+pyyaml
+gdown
+lpips
+pymcubes
+nerfacc==0.5.0
+ninja
