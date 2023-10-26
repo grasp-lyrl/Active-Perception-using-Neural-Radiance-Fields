@@ -51,6 +51,10 @@ pip install -e planning/rotorpy
 ```
 # extract to data/scene_datasets/hssd-hab
 https://drive.google.com/file/d/1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp/view?usp=drive_link
+
+# you can do so by gdown
+pip install gdown
+gdown https://drive.google.com/uc?id=1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp
 ```
 
 ### Run pipeline
