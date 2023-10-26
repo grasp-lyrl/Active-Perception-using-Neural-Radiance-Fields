@@ -46,6 +46,9 @@ pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindi
 # requirements for rotorpy
 pip install -e planning/rotorpy
 
+# other requirements
+pip install scikit-image lpips opencv-python PyYAML
+
 ```
 ### Download habitat data
 ```
