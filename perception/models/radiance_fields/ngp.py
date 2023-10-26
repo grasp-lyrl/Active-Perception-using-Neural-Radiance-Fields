@@ -9,8 +9,6 @@ import torch
 from torch.autograd import Function
 from torch.cuda.amp import custom_bwd, custom_fwd
 
-from ipdb import set_trace as st
-
 try:
     import tinycudann as tcnn
 except ImportError as e:
@@ -189,14 +187,12 @@ class NGPRadianceField(torch.nn.Module):
         )
 
         # if torch.sum(torch.isnan(density_before_activation)) > 0:
-        #     st()
 
         density = (
             self.density_activation(density_before_activation) * selector[..., None]
         )
 
         # if torch.sum(torch.isnan(density)) > 0:
-        #     st()
 
         if return_feat:
             return density, base_mlp_out

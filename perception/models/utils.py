@@ -33,8 +33,6 @@ from nerfacc.volrend import (
 sys.path.append("perception/nerfacc/nerfacc")
 from volrend import accumulate_along_rays, render_weight_from_alpha
 
-from ipdb import set_trace as st
-
 NERF_SYNTHETIC_SCENES = [
     "chair",
     "drums",
@@ -109,7 +107,7 @@ def render_image_with_occgrid_with_depth_guide(
         t_origins = chunk_rays.origins[ray_indices]
         t_dirs = chunk_rays.viewdirs[ray_indices]
         positions = t_origins + t_dirs * (t_starts + t_ends)[:, None] / 2.0
-        # st()
+        
         if timestamps is not None:
             # dnerf
             t = (
@@ -126,7 +124,7 @@ def render_image_with_occgrid_with_depth_guide(
         t_origins = chunk_rays.origins[ray_indices]
         t_dirs = chunk_rays.viewdirs[ray_indices]
         positions = t_origins + t_dirs * (t_starts + t_ends)[:, None] / 2.0
-        # st()
+        
         if timestamps is not None:
             # dnerf
             t = (
@@ -141,7 +139,7 @@ def render_image_with_occgrid_with_depth_guide(
 
     results = []
     chunk = torch.iinfo(torch.int32).max if radiance_field.training else test_chunk_size
-    # st()
+    
     for i in range(0, num_rays, chunk):
         chunk_rays = namedtuple_map(lambda r: r[i : i + chunk], rays)
         ray_indices, t_starts, t_ends = estimator.sampling(
@@ -267,7 +265,7 @@ def render_image_with_occgrid(
         t_origins = chunk_rays.origins[ray_indices]
         t_dirs = chunk_rays.viewdirs[ray_indices]
         positions = t_origins + t_dirs * (t_starts + t_ends)[:, None] / 2.0
-        # st()
+        
         if timestamps is not None:
             # dnerf
             t = (
@@ -284,7 +282,7 @@ def render_image_with_occgrid(
         t_origins = chunk_rays.origins[ray_indices]
         t_dirs = chunk_rays.viewdirs[ray_indices]
         positions = t_origins + t_dirs * (t_starts + t_ends)[:, None] / 2.0
-        # st()
+        
         if timestamps is not None:
             # dnerf
             t = (
@@ -990,7 +988,7 @@ def render_probablistic_image_with_occgrid_test(
             outputs=rgb_var,
         )
 
-        # st()
+        
         accumulate_along_rays_(
             weights,
             values=torch.pow(

@@ -10,8 +10,6 @@ from ..volrend import (
 )
 from .base import AbstractEstimator
 
-from ipdb import set_trace as st
-
 import time
 
 
@@ -397,7 +395,7 @@ class OccGridEstimator(AbstractEstimator):
         self.update_binary(occ_thre)
 
         # splited_occs = torch.split(self.occs.contiguous(), 5000)
-        # # st()
+        # 
         # thre = 0
         # for occs in splited_occs:
         #     thre += torch.sum(occs)

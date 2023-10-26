@@ -4,8 +4,6 @@ Imports
 import numpy as np
 import cvxopt
 from scipy.linalg import block_diag
-from ipdb import set_trace as st
-
 
 def cvxopt_solve_qp(P, q=None, G=None, h=None, A=None, b=None):
     """
@@ -271,7 +269,7 @@ class MinSnap(object):
         self.full_points = points
 
         # Compute the distances between each waypoint.
-        # st()
+        
         self.seg_dist = np.linalg.norm(np.diff(points, axis=0), axis=1)
         seg_mask = np.append(True, self.seg_dist > 1e-2)
         self.points = points[seg_mask, :]

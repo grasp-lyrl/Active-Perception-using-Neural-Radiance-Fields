@@ -1,6 +1,5 @@
 import open3d as o3d
 import numpy as np
-from ipdb import set_trace as st
 import argparse
 
 

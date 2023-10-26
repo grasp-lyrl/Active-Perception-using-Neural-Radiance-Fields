@@ -10,9 +10,6 @@ from ..volrend import (
 )
 from .base import AbstractEstimator
 
-from ipdb import set_trace as st
-
-
 class OccGridEstimator(AbstractEstimator):
     """Occupancy grid transmittance estimator for spatial skipping.
 
@@ -432,7 +429,7 @@ class OccGridEstimator(AbstractEstimator):
             # print("nan count: " + str(torch.sum(torch.isnan(self.occs))))
             count_nan = torch.sum(torch.isnan(self.occs))
             if count_nan != 0:
-                # st()
+                
                 print("replace nan: " + str(count_nan))
                 self.occs[torch.isnan(self.occs)] = occs_backup[torch.isnan(self.occs)]
             # self.occs = torch.nan_to_num(self.occs, nan=1.1e-2)

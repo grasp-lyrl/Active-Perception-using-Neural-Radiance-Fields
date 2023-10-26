@@ -296,11 +296,11 @@ def sample_traj(
         while in_collision:
             # free_indices = np.argwhere(path_finding_map == 0)
             free_indices = np.argwhere(vm >= 0)
-            # st()
+            
             vst_times = visiting_map[free_indices[:, 0], free_indices[:, 1]]
             exponent = np.exp(-(vst_times - np.min(vst_times)) * 0)
             distribution = exponent / np.sum(exponent)
-            # st()
+            
             free_samples = np.random.choice(
                 len(free_indices), 1, replace=False, p=distribution
             )
@@ -312,7 +312,7 @@ def sample_traj(
 
             x_samples[0, 2] = 1.5
             end_idx = world2voxels(x_samples - aabb[:3], voxel_grid_size)
-            # st()
+            
             crr_world = current_state - aabb[:3]
             end_world = x_samples - aabb[:3]
 
