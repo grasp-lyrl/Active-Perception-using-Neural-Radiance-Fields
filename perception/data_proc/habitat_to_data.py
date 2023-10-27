@@ -87,12 +87,6 @@ class Dataset(torch.utils.data.Dataset):
             self.bootstrap_indices[i] = np.concatenate([arr, ids], axis=0)
 
     def update_data(self, images, depths, semantics, camtoworlds):
-        """
-        update_data
-            when current self.images is greater than self.save_batch_size, save it to disk and clear it
-        fetch_data
-            when we want to retrieve data from a certain batch, we load it from disk and get it
-        """
         if self.images is None:
             self.camtoworlds = (
                 torch.from_numpy(camtoworlds).to(torch.float32).to(self.device)
