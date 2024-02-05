@@ -60,7 +60,7 @@ pip install lpips opencv-python
 https://drive.google.com/file/d/1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp/view?usp=drive_link
 
 # you can do so by gdown
-pip install gdown
+pip install gdown==4.6.0
 mkdir -p data/scene_datasets/
 cd data/scene_datasets/
 gdown https://drive.google.com/uc?id=1qXl0iTlKawCXpJ1QJDM-IljmlUVXuyNp
