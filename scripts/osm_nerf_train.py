@@ -12,7 +12,9 @@ import sys
 import os
 import random
 import math
+import pickle
 import numpy as np
+from ipdb import set_trace as st
 from scipy.spatial.transform import Rotation as R
 
 # matplotlib.use("Agg")
@@ -93,7 +95,9 @@ class ActiveNeRFMapper:
         print("Parameters Loading")
         # initialize radiance field, estimator, optimzer, and dataset
 
-        with open(f"scripts/config_" + args.habitat_scene + ".yaml", "r") as f:
+        self.data = pickle.load(open(f"data/stuy1/philly_cc.pkl",'rb'))
+
+        with open(f"scripts/config_"+"philly_cc"+".yaml", "r") as f:
             self.config_file = yaml.safe_load(f)
 
         self.save_path = (
@@ -168,7 +172,7 @@ class ActiveNeRFMapper:
                 aabb=estimator.aabbs[-1],
                 neurons=self.config_file["main_neurons"],
                 layers=self.config_file["main_layer"],
-                num_semantic_classes=args.sem_num,
+                num_semantic_classes=0,
             ).to(self.config_file["cuda"])
             optimizer = torch.optim.Adam(
                 radiance_field.parameters(),
@@ -176,7 +180,6 @@ class ActiveNeRFMapper:
                 eps=1e-15,
                 weight_decay=self.config_file["weight_decay"],
             )
-
             self.estimators.append(estimator)
             self.grad_scalers.append(torch.cuda.amp.GradScaler(2**10))
             self.radiance_fields.append(radiance_field)
@@ -186,8 +189,8 @@ class ActiveNeRFMapper:
                     [
                         torch.optim.lr_scheduler.CyclicLR(
                             optimizer,
-                            base_lr=1e-4,
-                            max_lr=1e-3,
+                            base_lr=1e-3,
+                            max_lr=1e-2,
                             step_size_up=int(self.config_file["training_steps"] / 4),
                             mode="exp_range",
                             gamma=1.0,  # 0.9999,
@@ -233,43 +236,47 @@ class ActiveNeRFMapper:
 
         self.current_pose = np.array(self.config_file["global_origin"])
 
-        self.sim = HabitatSim(
-            args.habitat_scene,
-            args.habitat_config_file,
-            img_w=self.config_file["img_w"],
-            img_h=self.config_file["img_h"],
-        )
+        # self.sim = HabitatSim(
+        #     args.habitat_scene,
+        #     args.habitat_config_file,
+        #     img_w=self.config_file["img_w"],
+        #     img_h=self.config_file["img_h"],
+        # )
 
         print("Parameters Loaded")
 
     def initialization(self):
         print("initialization Started")
-        sampled_poses_quat = []
-        sampled_poses_mat = []
-        r = R.from_quat(self.global_origin[3:])
-        g_pose = self.global_origin.copy()
-        initial_sample = 39
-        for i in range(initial_sample):
-            angles = r.as_euler("zyx", degrees=True)
-            angles[1] = (angles[1] + 9 * i) % 360
-            pose = g_pose.copy()
-            pose[3:] = R.from_euler("zyx", angles, degrees=True).as_quat()
+        # sampled_poses_quat = []
+        # sampled_poses_mat = []
+        # r = R.from_quat(self.global_origin[3:])
+        # g_pose = self.global_origin.copy()
+        # initial_sample = 39
+        # for i in range(initial_sample):
+        #     angles = r.as_euler("zyx", degrees=True)
+        #     angles[1] = (angles[1] + 9 * i) % 360
+        #     pose = g_pose.copy()
+        #     pose[3:] = R.from_euler("zyx", angles, degrees=True).as_quat()
 
-            pose[:3] = pose[:3] + np.random.uniform([-0.2, -0.2, -0.2], [0.2, 0.2, 0.2])
-            sampled_poses_quat.append(pose)
+        #     pose[:3] = pose[:3] + np.random.uniform([-0.2, -0.2, -0.2], [0.2, 0.2, 0.2])
+        #     sampled_poses_quat.append(pose)
 
-            T = np.eye(4)
-            T[:3, :3] = R.from_quat(pose[3:]).as_matrix()
-            T[:3, 3] = pose[:3]
-            sampled_poses_mat.append(T)
+        #     T = np.eye(4)
+        #     T[:3, :3] = R.from_quat(pose[3:]).as_matrix()
+        #     T[:3, 3] = pose[:3]
+        #     sampled_poses_mat.append(T)
 
-        (
-            sampled_images,
-            sampled_depth_images,
-            sampled_sem_images,
-        ) = self.sim.sample_images_from_poses(sampled_poses_quat)
+        # (
+        #     sampled_images,
+        #     sampled_depth_images,
+        #     sampled_sem_images,
+        # ) = self.sim.sample_images_from_poses(sampled_poses_quat)
+        # self.data['Ts']*=np.array([[1,1,1,1],[1,1,1,1],[1,1,1,-1],[1,1,1,1]])
 
-        import ipdb; ipdb.set_trace()
+        sampled_images = self.data['images']#[20:]
+        sampled_depth_images = self.data['depths']#[20:]
+        sampled_poses_mat = self.data['Ts']#[20:]
+
         for i, d_img in enumerate(sampled_depth_images):
             d_points = d_img[int(d_img.shape[0] / 2)]
             R_m = sampled_poses_mat[i][:3, :3]
@@ -281,16 +288,16 @@ class ActiveNeRFMapper:
                 // self.config_file["main_grid_size"],
                 dtype=int,
             )
-            self.cost_map, visiting_map = update_cost_map(
-                cost_map=self.cost_map,
-                depth=d_points,
-                angle=d_angles,
-                g_loc=grid_loc,
-                w_loc=w_loc,
-                aabb=self.aabb.cpu().numpy(),
-                resolution=self.config_file["main_grid_size"],
-            )
-            self.visiting_map += visiting_map
+            # self.cost_map, visiting_map = update_cost_map(
+            #     cost_map=self.cost_map,
+            #     depth=d_points,
+            #     angle=d_angles,
+            #     g_loc=grid_loc,
+            #     w_loc=w_loc,
+            #     aabb=self.aabb.cpu().numpy(),
+            #     resolution=self.config_file["main_grid_size"],
+            # )
+            # self.visiting_map += visiting_map
 
         sampled_images = sampled_images[:, :, :, :3]
 
@@ -307,32 +314,34 @@ class ActiveNeRFMapper:
         self.train_dataset.update_data(
             sampled_images,
             sampled_depth_images,
-            sampled_sem_images,
             sampled_poses_mat,
         )
 
-        test_loc = self.config_file["test_loc"]
+        # test_loc = self.config_file["test_loc"]
 
-        test_quat = self.config_file["test_quat"]
+        # test_quat = self.config_file["test_quat"]
 
-        test_samples = []
+        # test_samples = []
 
-        for loc in test_loc:
-            for quat in test_quat:
-                test_samples.append(np.array(loc + quat))
+        # for loc in test_loc:
+        #     for quat in test_quat:
+        #         test_samples.append(np.array(loc + quat))
 
-        test_sampled_poses_mat = []
-        for p in test_samples:
-            T = np.eye(4)
-            T[:3, :3] = R.from_quat(p[3:]).as_matrix()
-            T[:3, 3] = p[:3]
-            test_sampled_poses_mat.append(T)
+        # test_sampled_poses_mat = []
+        # for p in test_samples:
+        #     T = np.eye(4)
+        #     T[:3, :3] = R.from_quat(p[3:]).as_matrix()
+        #     T[:3, 3] = p[:3]
+        #     test_sampled_poses_mat.append(T)
 
-        (
-            test_sampled_images,
-            test_sampled_depth_images,
-            test_sampled_sem_images,
-        ) = self.sim.sample_images_from_poses(test_samples)
+        # (
+        #     test_sampled_images,
+        #     test_sampled_depth_images,
+        #     test_sampled_sem_images,
+        # ) = self.sim.sample_images_from_poses(test_samples)
+        test_sampled_images = self.data['images'][:20]
+        test_sampled_depth_images = self.data['depths'][:20]
+        test_sampled_poses_mat = self.data['Ts'][:20]
 
         test_sampled_images = test_sampled_images[:, :, :, :3]
 
@@ -346,7 +355,6 @@ class ActiveNeRFMapper:
         self.test_dataset.update_data(
             test_sampled_images,
             test_sampled_depth_images,
-            test_sampled_sem_images,
             np.array(test_sampled_poses_mat),
         )
 
@@ -364,7 +372,7 @@ class ActiveNeRFMapper:
                 self.schedulers.append(
                     torch.optim.lr_scheduler.MultiStepLR(
                         optimizer,
-                        milestones=[int(steps * 0.3), int(steps * 0.8)],
+                        milestones=[int(steps * 0.3), int(steps*0.5), int(steps * 0.8)],
                         gamma=0.1,
                     )
                 )
@@ -372,7 +380,7 @@ class ActiveNeRFMapper:
         num_test_images = self.test_dataset.size
         test_idx = np.arange(num_test_images)
 
-        self.sem_ce_ls = []
+        # self.sem_ce_ls = []
 
         def occ_eval_fn(x):
             density = radiance_field.query_density(x)
@@ -393,7 +401,7 @@ class ActiveNeRFMapper:
             mse_dep_lst = [[] for _ in range(num_test_images)]
 
             ground_truth_sem = []
-            sem_imgs = []
+            # sem_imgs = []
 
             # training each model
             for model_idx, (
@@ -442,7 +450,7 @@ class ActiveNeRFMapper:
                 )
                 pixels = data["pixels"].to(curr_device)
                 dep = data["dep"].to(curr_device)
-                sem = data["sem"].to(curr_device)
+                # sem = data["sem"].to(curr_device)
 
                 # update occupancy grid
                 if planning_step == -1:
@@ -474,7 +482,7 @@ class ActiveNeRFMapper:
                     rgb,
                     acc,
                     depth,
-                    semantic,
+                    # semantic,
                     n_rendering_samples,
                 ) = render_image_with_occgrid_with_depth_guide(
                     radiance_field,
@@ -507,13 +515,16 @@ class ActiveNeRFMapper:
                 # compute loss
                 loss_rgb = F.smooth_l1_loss(rgb, pixels)
                 loss_dep = F.smooth_l1_loss(depth, dep.unsqueeze(1))
-                loss_sem = F.cross_entropy(semantic, sem)
+                # loss_sem = F.cross_entropy(semantic, sem)
 
-                loss = loss_rgb * 10 + loss_dep / 5 + loss_sem / 2
+                # loss = loss_rgb * 10 + loss_dep / 5 #+ loss_sem / 2
+                loss = loss_rgb * 10 + loss_dep /100 # f 0.1 and 100
+                loss = loss_rgb * 100 + loss_dep /1000 # f 0.5 and dep~scale of z 300
+                # st()
 
-                losses[0].append(loss_rgb.detach().cpu().item())
-                losses[1].append(loss_dep.detach().cpu().item() / 50)
-                losses[2].append(loss_sem.detach().cpu().item() / 2)
+                losses[0].append(loss_rgb.detach().cpu().item()*10)
+                losses[1].append(loss_dep.detach().cpu().item()/1000)
+                # losses[2].append(loss_sem.detach().cpu().item() / 2)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -561,14 +572,14 @@ class ActiveNeRFMapper:
                             )
                             pixels = data["pixels"].to(curr_device)
                             dep = data["dep"].to(curr_device)
-                            sem_gt = data["sem"].to(curr_device)
+                            # sem_gt = data["sem"].to(curr_device)
 
                             # rendering
                             (
                                 rgb,
                                 acc,
                                 depth,
-                                sem,
+                                # sem,
                                 _,
                             ) = render_image_with_occgrid_test(
                                 1024,
@@ -583,16 +594,16 @@ class ActiveNeRFMapper:
                                 cone_angle=self.config_file["cone_angle"],
                                 alpha_thre=self.config_file["alpha_thre"],
                             )
-                            ground_truth_sem.append(sem_gt.cpu().numpy())
-                            sem_imgs.append(sem.cpu().numpy())
-                            self.sem_ce_ls.append(
-                                F.cross_entropy(
-                                    sem.reshape(
-                                        (-1, radiance_field.num_semantic_classes)
-                                    ),
-                                    sem_gt.flatten(),
-                                ).item()
-                            )
+                            # ground_truth_sem.append(sem_gt.cpu().numpy())
+                            # sem_imgs.append(sem.cpu().numpy())
+                            # self.sem_ce_ls.append(
+                            #     F.cross_entropy(
+                            #         sem.reshape(
+                            #             (-1, radiance_field.num_semantic_classes)
+                            #         ),
+                            #         sem_gt.flatten(),
+                            #     ).item()
+                            # )
 
                             lpips_fn = lambda x, y: self.lpips_net.to(curr_device)(
                                 self.lpips_norm_fn(x), self.lpips_norm_fn(y)
@@ -650,17 +661,17 @@ class ActiveNeRFMapper:
 
                 psnr_test = np.array(psnrs_lst)[:, 0]
                 depth_mse_test = np.array(mse_dep_lst)[:, 0]
-                sem_ce = np.array(self.sem_ce_ls)
+                # sem_ce = np.array(self.sem_ce_ls)
 
                 print("Mean PSNR: " + str(np.mean(psnr_test)))
                 print("Mean Depth MSE: " + str(np.mean(depth_mse_test)))
-                print("Mean Semantic CE: " + str(np.mean(sem_ce)))
+                # print("Mean Semantic CE: " + str(np.mean(sem_ce)))
                 self.errors_hist.append(
                     [
                         planning_step,
                         np.mean(psnr_test),
                         np.mean(depth_mse_test),
-                        np.mean(sem_ce),
+                        # np.mean(sem_ce),
                     ]
                 )
 
@@ -671,7 +682,7 @@ class ActiveNeRFMapper:
         depth_imgs = [[] for _ in range(self.config_file["n_ensembles"])]
         depth_imgs_var = [[] for _ in range(self.config_file["n_ensembles"])]
         acc_imgs = [[] for _ in range(self.config_file["n_ensembles"])]
-        sem_imgs = [[] for _ in range(self.config_file["n_ensembles"])]
+        # sem_imgs = [[] for _ in range(self.config_file["n_ensembles"])]
         num_sample = 40  # self.config_file["sample_disc"] + 5
         for model_idx, (radiance_field, estimator) in enumerate(
             zip(self.radiance_fields, self.estimators)
@@ -921,47 +932,51 @@ class ActiveNeRFMapper:
         traj2 = np.copy(traj)
         step = self.sim_step
 
-        render_images = np.array(self.sim.render_tpv(traj))
+        # render_images = np.array(self.sim.render_tpv(traj))
         if not os.path.exists(self.viz_save_path):
             os.makedirs(self.viz_save_path)
-        for img in render_images:
-            cv2.imwrite(self.viz_save_path + str(self.sim_step) + ".png", img)
-            self.sim_step += 1
+        # for img in render_images:
+        #     cv2.imwrite(self.viz_save_path + str(self.sim_step) + ".png", img)
+        #     self.sim_step += 1
 
-        render_images = np.array(self.sim.render_top_tpv(traj))
+        # render_images = np.array(self.sim.render_top_tpv(traj))
         if not os.path.exists(self.viz_save_path):
             os.makedirs(self.viz_save_path)
         if not os.path.exists(self.viz_save_path + "top/"):
             os.makedirs(self.viz_save_path + "top/")
-        for s, img in enumerate(render_images):
-            cv2.imwrite(self.viz_save_path + "top/" + str(step + s) + ".png", img)
+        # for s, img in enumerate(render_images):
+            # cv2.imwrite(self.viz_save_path + "top/" + str(step + s) + ".png", img)
 
         fpv_path = self.viz_save_path + "fpv/"
         if not os.path.exists(fpv_path):
             os.makedirs(fpv_path)
             os.makedirs(fpv_path + "gt_rgb/")
             os.makedirs(fpv_path + "gt_dep/")
-            os.makedirs(fpv_path + "gt_sem/")
+            # os.makedirs(fpv_path + "gt_sem/")
             os.makedirs(fpv_path + "pd_rgb/")
             os.makedirs(fpv_path + "pd_dep/")
             os.makedirs(fpv_path + "pd_occ/")
-            os.makedirs(fpv_path + "pd_sem/")
+            # os.makedirs(fpv_path + "pd_sem/")
 
-        (
-            sampled_images,
-            sampled_depth_images,
-            sampled_sem_images,
-        ) = self.sim.sample_images_from_poses(traj1)
+        # (
+        #     sampled_images,
+        #     sampled_depth_images,
+        #     # sampled_sem_images,
+        # ) = self.sim.sample_images_from_poses(traj1)
+
+        sampled_images = self.data['images'][100:110]
+        sampled_depth_images = self.data['depths'][100:110]
+        sampled_poses_mat = self.data['Ts'][100:110]
 
         (
             rgb_predictions,
             depth_predictions,
             acc_predictions,
-            sem_predictions,
+            # sem_predictions,
         ) = Dataset.render_image_from_pose(
             self.radiance_fields[0],
             self.estimators[0],
-            traj2,
+            sampled_poses_mat,
             self.config_file["img_w"],
             self.config_file["img_h"],
             self.focal,
@@ -973,268 +988,73 @@ class ActiveNeRFMapper:
             1,
             self.config_file["cuda"],
         )
-
-        for st, (rgb, dep, sem, rgb_pd, dep_pd, acc_pd, sem_pd) in enumerate(
+# 
+        for idx, (rgb, dep, rgb_pd, dep_pd, acc_pd) in enumerate(
             zip(
                 sampled_images,
                 sampled_depth_images,
-                sampled_sem_images,
+                # sampled_sem_images,
                 rgb_predictions,
                 depth_predictions,
                 acc_predictions,
-                sem_predictions,
+                # sem_predictions,
             )
         ):
+
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             cv2.imwrite(
-                fpv_path + "gt_rgb/" + str(step + st) + ".png",
+                fpv_path + "gt_rgb/" + str(step + idx) + ".png",
                 cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
             )
             cv2.imwrite(
-                fpv_path + "pd_rgb/" + str(step + st) + ".png",
+                fpv_path + "pd_rgb/" + str(step + idx) + ".png",
                 cv2.cvtColor(np.float32(rgb_pd * 255), cv2.COLOR_RGB2BGR),
             )
 
             cv2.imwrite(
-                fpv_path + "gt_dep/" + str(step + st) + ".png",
-                np.clip(dep * 25, 0, 255),
+                fpv_path + "gt_dep/" + str(step + idx) + ".png",
+                # np.clip(dep, 0, 255),
+                dep,
             )
             cv2.imwrite(
-                fpv_path + "pd_dep/" + str(step + st) + ".png",
-                np.clip(dep_pd * 25, 0, 255),
+                fpv_path + "pd_dep/" + str(step + idx) + ".png",
+                # np.clip(dep_pd, 0, 255),
+                dep_pd,
             )
 
-            sem = d3_40_colors_rgb[sem.flatten()].reshape(sem.shape[0], sem.shape[1], 3)
-            cv2.imwrite(
-                fpv_path + "gt_sem/" + str(step + st) + ".png",
-                cv2.cvtColor(np.float32(sem), cv2.COLOR_RGB2BGR),
-            )
-            sem_argmax = np.argmax(sem_pd, axis=2)
-            sem_pd = d3_40_colors_rgb[sem_argmax.flatten()].reshape(
-                sem_argmax.shape[0], sem_argmax.shape[1], 3
-            )
-            cv2.imwrite(
-                fpv_path + "pd_sem/" + str(step + st) + ".png",
-                cv2.cvtColor(np.float32(sem_pd), cv2.COLOR_RGB2BGR),
-            )
+            # sem = d3_40_colors_rgb[sem.flatten()].reshape(sem.shape[0], sem.shape[1], 3)
+            # cv2.imwrite(
+            #     fpv_path + "gt_sem/" + str(step + st) + ".png",
+            #     cv2.cvtColor(np.float32(sem), cv2.COLOR_RGB2BGR),
+            # )
+            # sem_argmax = np.argmax(sem_pd, axis=2)
+            # sem_pd = d3_40_colors_rgb[sem_argmax.flatten()].reshape(
+            #     sem_argmax.shape[0], sem_argmax.shape[1], 3
+            # )
+            # cv2.imwrite(
+            #     fpv_path + "pd_sem/" + str(step + st) + ".png",
+            #     cv2.cvtColor(np.float32(sem_pd), cv2.COLOR_RGB2BGR),
+            # )
 
             cv2.imwrite(
-                fpv_path + "pd_occ/" + str(step + st) + ".png",
+                fpv_path + "pd_occ/" + str(step + idx) + ".png",
                 np.clip(acc_pd * 255, 0, 255),
             )
+            self.sim_step += 1
 
-    def planning(self, steps, training_steps_per_step):
-        print("Planning Thread Started")
-
-        current_state = self.global_origin[:3]
-
-        def occ_eval_fn(x):
-            density = self.radiance_field.query_density(x)
-            return density * self.config_file["render_step_size"]
-
-        sim_step = 0
-
-        step = 0
-        flag = True
-        while flag and step < self.config_file["planning_step"]:
-            print("planning step: " + str(step))
-            step += 1
-
-            # get voxel grid
-            voxel_grid = self.estimators[0].binaries
-            voxel_grid = voxel_grid.cpu().numpy()
-            vg = np.swapaxes(voxel_grid, 2, 3)
-
-            voxel_grid1 = self.estimators[1].binaries
-            voxel_grid1 = voxel_grid1.cpu().numpy()
-            vg1 = np.swapaxes(voxel_grid1, 2, 3)
-
-            print("sampling trajectory from: " + str(current_state))
-
-            xyz_state = np.copy(current_state)
-            xyz_state[1] = current_state[2]
-            xyz_state[2] = current_state[1]
-
-            aabb = np.copy(self.aabb.cpu().numpy())
-            aabb[1] = self.aabb[2]
-            aabb[2] = self.aabb[1]
-            aabb[4] = self.aabb[5]
-            aabb[5] = self.aabb[4]
-
-            N_sample_traj_pose = sample_traj(
-                voxel_grid=np.array([vg, vg1]),
-                current_state=xyz_state,
-                N_traj=self.config_file["num_traj"],
-                aabb=aabb,
-                sim=self.sim,
-                cost_map=self.cost_map,
-                N_sample_disc=self.config_file["sample_disc"],
-                voxel_grid_size=self.config_file["main_grid_size"],
-                visiting_map=self.visiting_map,
-                save_path=self.save_path,
-            )
-            copy_traj = N_sample_traj_pose.copy()
-
-            if self.policy_type == "uncertainty":
-                uncertainties = []
-                for i in tqdm.tqdm(range(self.config_file["num_traj"])):
-                    uncertainty = self.probablistic_uncertainty(
-                        N_sample_traj_pose[i], step
-                    )
-                    uncertainties.append(uncertainty)
-
-                best_index = np.argmax(np.array(uncertainties))
-
-                a = np.linspace(0, len(N_sample_traj_pose[best_index]) - 20, 20)
-                b = np.linspace(
-                    len(N_sample_traj_pose[best_index]) - 20,
-                    len(N_sample_traj_pose[best_index]) - 1,
-                    20,
-                )
-                unc_idx = np.hstack((a, b)).astype(int)
-
-                (
-                    sampled_images,
-                    sampled_depth_images,
-                    sampled_sem_images,
-                ) = self.sim.sample_images_from_poses(
-                    N_sample_traj_pose[best_index][unc_idx]
-                )
-
-                sampled_images = sampled_images[:, :, :, :3]
-
-                self.render(copy_traj[best_index])
-                self.current_pose = copy_traj[best_index][-1]
-
-                sampled_poses_mat = []
-                for pose in N_sample_traj_pose[best_index][unc_idx]:
-                    T = np.eye(4)
-                    T[:3, :3] = R.from_quat(pose[3:]).as_matrix()
-                    T[:3, 3] = pose[:3]
-                    sampled_poses_mat.append(T)
-
-                for i, (mat, d_img) in enumerate(
-                    zip(sampled_poses_mat[-6:], sampled_depth_images[-6:])
-                ):
-                    d_points = d_img[int(d_img.shape[0] / 2)]
-                    R_m = mat[:3, :3]
-                    euler = R.from_matrix(R_m).as_euler("yzx")
-                    d_angles = (self.align_angles + euler[0]) % (2 * np.pi)
-                    w_loc = mat[:3, 3]
-                    grid_loc = np.array(
-                        (w_loc - self.aabb.cpu().numpy()[:3])
-                        // self.config_file["main_grid_size"],
-                        dtype=int,
-                    )
-
-                    self.cost_map, visiting_map = update_cost_map(
-                        cost_map=self.cost_map,
-                        depth=d_points,
-                        angle=d_angles,
-                        g_loc=grid_loc,
-                        w_loc=w_loc,
-                        aabb=self.aabb.cpu().numpy(),
-                        resolution=self.config_file["main_grid_size"],
-                    )
-                    self.visiting_map += visiting_map
-
-                self.train_dataset.update_data(
-                    sampled_images,
-                    sampled_depth_images,
-                    sampled_sem_images,
-                    sampled_poses_mat,
-                )
-
-                current_state = N_sample_traj_pose[best_index][unc_idx][-1, :3]
-            elif self.policy_type == "random":
-                uncertainty, mid = self.trajector_uncertainty(
-                    N_sample_traj_pose[0], step
-                )
-
-                (
-                    sampled_images,
-                    sampled_depth_images,
-                    sampled_sem_images,
-                ) = self.sim.sample_images_from_poses(N_sample_traj_pose[0])
-                best_index = 0
-
-                sampled_images = sampled_images[:, :, :, :3]
-
-                self.render(N_sample_traj_pose[best_index][1:])
-
-                sampled_poses_mat = []
-                for pose in N_sample_traj_pose[best_index]:
-                    T = np.eye(4)
-                    T[:3, :3] = R.from_quat(pose[3:]).as_matrix()
-                    T[:3, 3] = pose[:3]
-                    sampled_poses_mat.append(T)
-
-                for i, d_img in enumerate(sampled_depth_images):
-                    d_points = d_img[int(d_img.shape[0] / 2)]
-                    R_m = sampled_poses_mat[i][:3, :3]
-                    euler = R.from_matrix(R_m).as_euler("yzx")
-                    d_angles = (self.align_angles + euler[0]) % (2 * np.pi)
-                    w_loc = sampled_poses_mat[i][:3, 3]
-                    grid_loc = np.array(
-                        (w_loc - self.aabb.cpu().numpy()[:3])
-                        // self.config_file["main_grid_size"],
-                        dtype=int,
-                    )
-                    self.cost_map = update_cost_map(
-                        self.cost_map,
-                        d_points,
-                        d_angles,
-                        grid_loc,
-                        self.aabb.cpu().numpy(),
-                        self.config_file["main_grid_size"],
-                    )
-
-                self.train_dataset.update_data(
-                    sampled_images,
-                    sampled_depth_images,
-                    sampled_sem_images,
-                    sampled_poses_mat,
-                )
-
-                current_state = N_sample_traj_pose[best_index][-1, :3]
-
-                self.current_pose = N_sample_traj_pose[best_index][-1]
-
-            elif self.policy_type == "spatial":
-                (
-                    sampled_images,
-                    sampled_depth_images,
-                    sampled_sem_images,
-                ) = None
-
-            print("plan finished at: " + str(current_state))
-
-            self.nerf_training(training_steps_per_step, planning_step=step)
-
-            past_unc = np.array(self.trajector_uncertainty_list[:step]).astype(float)
-
-            unc = np.max(np.mean(past_unc, axis=2), axis=1)
-            if step >= 5:
-                if (
-                    unc[step - 1] > 0.05
-                    and unc[step - 2] > 0.05
-                    and unc[step - 3] > 0.05
-                    and unc[step - 4] > 0.05
-                    and unc[step - 5] > 0.05
-                ):
-                    flag = False
 
     def pipeline(self):
         self.initialization()
 
         self.nerf_training(self.config_file["training_steps"])
 
-        self.planning(
-            self.config_file["planning_step"], int(self.config_file["training_steps"])
-        )
+
+        # self.planning(
+        #     self.config_file["planning_step"], int(self.config_file["training_steps"])
+        # )
 
         self.nerf_training(
-            self.config_file["training_steps"] * 5, final_train=True, planning_step=-10
+            self.config_file["training_steps"] * 2, final_train=True, planning_step=-10
         )
 
         plt.plot(np.arange(len(self.learning_rate_lst)), self.learning_rate_lst)
@@ -1254,8 +1074,8 @@ class ActiveNeRFMapper:
         if not os.path.exists(self.save_path + "/checkpoints/"):
             os.makedirs(self.save_path + "/checkpoints/")
 
-        self.trajector_uncertainty_list = np.array(self.trajector_uncertainty_list)
-        np.save(self.save_path + "/uncertainty.npy", self.trajector_uncertainty_list)
+        # self.trajector_uncertainty_list = np.array(self.trajector_uncertainty_list)
+        # np.save(self.save_path + "/uncertainty.npy", self.trajector_uncertainty_list)
 
         self.errors_hist = np.array(self.errors_hist)
         np.save(self.save_path + "/errors.npy", self.errors_hist)
@@ -1276,6 +1096,7 @@ class ActiveNeRFMapper:
 
 
 if __name__ == "__main__":
+    torch.cuda.empty_cache
     args = parse_args()
 
     random.seed(9)

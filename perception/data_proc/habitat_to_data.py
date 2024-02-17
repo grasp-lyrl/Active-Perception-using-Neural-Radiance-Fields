@@ -49,7 +49,7 @@ class Dataset(torch.utils.data.Dataset):
         ]
         self.images = None
         self.depths = None
-        self.semantics = None
+        # self.semantics = None
         self.camtoworlds = None
         self.training = training
         self.device = device
@@ -71,7 +71,7 @@ class Dataset(torch.utils.data.Dataset):
         )
         self.images = self.images[indices]
         self.depths = self.depths[indices]
-        self.semantics = self.semantics[indices]
+        # self.semantics = self.semantics[indices]
         self.camtoworlds = self.camtoworlds[indices]
 
         # bootstrap indices
@@ -86,18 +86,18 @@ class Dataset(torch.utils.data.Dataset):
             )
             self.bootstrap_indices[i] = np.concatenate([arr, ids], axis=0)
 
-    def update_data(self, images, depths, semantics, camtoworlds):
+    def update_data(self, images, depths, camtoworlds):
         if self.images is None:
             self.camtoworlds = (
                 torch.from_numpy(camtoworlds).to(torch.float32).to(self.device)
             )
             self.images = torch.from_numpy(images).to(torch.uint8).to(self.device)
             self.depths = torch.from_numpy(depths).to(torch.float32).to(self.device)
-            self.semantics = (
-                torch.from_numpy(semantics.astype(np.int64))
-                .to(torch.int64)
-                .to(self.device)
-            )
+            # self.semantics = (
+            #     torch.from_numpy(semantics.astype(np.int64))
+            #     .to(torch.int64)
+            #     .to(self.device)
+            # )
 
             # bootstrap indices
             for i, arr in enumerate(self.bootstrap_indices):
@@ -111,7 +111,8 @@ class Dataset(torch.utils.data.Dataset):
                 )
 
             self.height, self.width = self.images.shape[1:3]
-            hfov = np.pi / 2
+            # hfov = np.pi / 3
+            hfov = 1.5707963267948966
             focal = 0.5 * self.width / np.tan(hfov / 2)
             self.K = np.array(
                 [
@@ -141,12 +142,12 @@ class Dataset(torch.utils.data.Dataset):
 
             depths = torch.from_numpy(depths).to(torch.float32).to(self.device)
             self.depths = torch.cat([self.depths, depths], dim=0)
-            semantics = (
-                torch.from_numpy(semantics.astype(np.int64))
-                .to(torch.int64)
-                .to(self.device)
-            )
-            self.semantics = torch.cat([self.semantics, semantics], dim=0)
+            # semantics = (
+            #     torch.from_numpy(semantics.astype(np.int64))
+            #     .to(torch.int64)
+            #     .to(self.device)
+            # )
+            # self.semantics = torch.cat([self.semantics, semantics], dim=0)
 
             self.camtoworlds = torch.cat([self.camtoworlds, camtoworlds], dim=0)
 
@@ -166,7 +167,7 @@ class Dataset(torch.utils.data.Dataset):
             self.save_fp + "/data" + str(self.saved_batch) + ".npz",
             images=self.images.cpu().numpy(),
             depths=self.depths.cpu().numpy(),
-            semantics=self.semantics.cpu().numpy(),
+            # semantics=self.semantics.cpu().numpy(),
             camtoworlds=self.camtoworlds.cpu().numpy(),
             K=self.K.cpu().numpy(),
             bootstrap_indices=np.array(self.bootstrap_indices),
@@ -184,7 +185,8 @@ class Dataset(torch.utils.data.Dataset):
     def preprocess(self, data):
         """Process the fetched / cached data with randomness."""
         pixels, rays = data["rgb"], data["rays"]
-        dep, sem = data["dep"], data["sem"]
+        # dep, sem = data["dep"], data["sem"]
+        dep = data["dep"]
 
         if self.training:
             # random during training to aid learning correct radiance field
@@ -196,10 +198,10 @@ class Dataset(torch.utils.data.Dataset):
         return {
             "pixels": pixels,  # [n_rays, 3] or [h, w, 3]
             "dep": dep,  # [n_rays,] or [h, w]
-            "sem": sem,  # [n_rays,] or [h, w]
+            # "sem": sem,  # [n_rays,] or [h, w]
             "rays": rays,  # [n_rays,] or [h, w]
             "color_bkgd": color_bkgd,  # [3,]
-            **{k: v for k, v in data.items() if k not in ["rgb", "rays", "dep", "sem"]},
+            **{k: v for k, v in data.items() if k not in ["rgb", "rays", "dep"]},
         }
 
     def fetch_data(self, index):
@@ -228,7 +230,7 @@ class Dataset(torch.utils.data.Dataset):
 
         rgb = self.images[image_id, y, x] / 255.0  # (num_rays, 3)
         dep = self.depths[image_id, y, x]  # (num_rays,)
-        sem = self.semantics[image_id, y, x]  # (num_rays,)
+        # sem = self.semantics[image_id, y, x]  # (num_rays,)
         c2w = self.camtoworlds[image_id]  # (num_rays, 3, 4)
 
         # -1.0 for OPENGL_CAMERA
@@ -254,20 +256,20 @@ class Dataset(torch.utils.data.Dataset):
             viewdirs = torch.reshape(viewdirs, (num_rays, 3))
             rgb = torch.reshape(rgb, (num_rays, 3))
             dep = torch.reshape(dep, (num_rays,))
-            sem = torch.reshape(sem, (num_rays,))
+            # sem = torch.reshape(sem, (num_rays,))
         else:
             origins = torch.reshape(origins, (self.height, self.width, 3))
             viewdirs = torch.reshape(viewdirs, (self.height, self.width, 3))
             rgb = torch.reshape(rgb, (self.height, self.width, 3))
             dep = torch.reshape(dep, (self.height, self.width))
-            sem = torch.reshape(sem, (self.height, self.width))
+            # sem = torch.reshape(sem, (self.height, self.width))
 
         rays = Rays(origins=origins, viewdirs=viewdirs)
 
         return {
             "rgb": rgb,  # [h, w, 3] or [num_rays, 3]
             "dep": dep,  # [h, w] or [num_rays,]
-            "sem": sem,  # [h, w] or [num_rays,]
+            # "sem": sem,  # [h, w] or [num_rays,]
             "rays": rays,  # [h, w, 3] or [num_rays, 3]
         }
 
@@ -319,23 +321,24 @@ class Dataset(torch.utils.data.Dataset):
         images = np.zeros((poses.shape[0], int(height * scale), int(width * scale), 3))
         depths = np.zeros((poses.shape[0], int(height * scale), int(width * scale)))
         accs = np.zeros((poses.shape[0], int(height * scale), int(width * scale)))
-        sems = np.zeros(
-            (
-                poses.shape[0],
-                int(height * scale),
-                int(width * scale),
-                radiance_field.num_semantic_classes,
-            )
-        )
+        # sems = np.zeros(
+        #     (
+        #         poses.shape[0],
+        #         int(height * scale),
+        #         int(width * scale),
+        #         radiance_field.num_semantic_classes,
+        #     )
+        # )
 
         for i, p in enumerate(poses):
-            v = p[:3]
-            so = R.from_quat(p[3:])
+            # v = p[:3]
+            # so = R.from_quat(p[3:])
 
-            pose = np.eye(4)
-            pose[:3, :3] = so.as_matrix()
-            pose[:3, 3] = v
-            pose = torch.from_numpy(pose).unsqueeze(0).float().to(device)
+            # pose = np.eye(4)
+            # pose[:3, :3] = so.as_matrix()
+            # pose[:3, 3] = v
+            pose = torch.from_numpy(p).unsqueeze(0).float().to(device)
+
 
             K = np.array(
                 [
@@ -355,45 +358,19 @@ class Dataset(torch.utils.data.Dataset):
 
             render_bkgd = torch.zeros(3, device=device)
 
-            if radiance_field.num_semantic_classes > 0:
-                rgb, acc, depth, sem, _ = render_image_with_occgrid_test(
-                    1024,
-                    # scene
-                    radiance_field,
-                    estimator,
-                    rays,
-                    # rendering options
-                    near_plane=near_plane,
-                    render_step_size=render_step_size,
-                    render_bkgd=render_bkgd,
-                    cone_angle=cone_angle,
-                    alpha_thre=alpha_thre,
-                )
-                sems[i] = (
-                    sem.cpu()
-                    .numpy()
-                    .reshape(
-                        (
-                            int(height * scale),
-                            int(width * scale),
-                            radiance_field.num_semantic_classes,
-                        )
-                    )
-                )
-            else:
-                rgb, acc, depth, _ = render_image_with_occgrid_test(
-                    1024,
-                    # scene
-                    radiance_field,
-                    estimator,
-                    rays,
-                    # rendering options
-                    near_plane=near_plane,
-                    render_step_size=render_step_size,
-                    render_bkgd=render_bkgd,
-                    cone_angle=cone_angle,
-                    alpha_thre=alpha_thre,
-                )
+            rgb, acc, depth, _ = render_image_with_occgrid_test(
+                1024,
+                # scene
+                radiance_field,
+                estimator,
+                rays,
+                # rendering options
+                near_plane=near_plane,
+                render_step_size=render_step_size,
+                render_bkgd=render_bkgd,
+                cone_angle=cone_angle,
+                alpha_thre=alpha_thre,
+            )
 
             images[i] = (
                 rgb.cpu().numpy().reshape((int(height * scale), int(width * scale), 3))
@@ -405,10 +382,10 @@ class Dataset(torch.utils.data.Dataset):
                 acc.cpu().numpy().reshape((int(height * scale), int(width * scale)))
             )
 
-        if radiance_field.num_semantic_classes > 0:
-            return images, depths, accs, sems
-        else:
-            return images, depths, accs
+        # if radiance_field.num_semantic_classes > 0:
+        #     return images, depths, accs, sems
+        # else:
+        return images, depths, accs
 
     def render_probablistic_image_from_pose(
         radiance_field,
@@ -432,14 +409,14 @@ class Dataset(torch.utils.data.Dataset):
         )
         depths_var = np.zeros((poses.shape[0], int(height * scale), int(width * scale)))
         accs = np.zeros((poses.shape[0], int(height * scale), int(width * scale)))
-        sems = np.zeros(
-            (
-                poses.shape[0],
-                int(height * scale),
-                int(width * scale),
-                radiance_field.num_semantic_classes,
-            )
-        )
+        # sems = np.zeros(
+        #     (
+        #         poses.shape[0],
+        #         int(height * scale),
+        #         int(width * scale),
+        #         radiance_field.num_semantic_classes,
+        #     )
+        # )
 
         for i, p in enumerate(poses):
             v = p[:3]
@@ -468,60 +445,26 @@ class Dataset(torch.utils.data.Dataset):
 
             render_bkgd = torch.zeros(3, device=device)
 
-            if radiance_field.num_semantic_classes > 0:
-                (
-                    rgb,
-                    rgb_var,
-                    acc,
-                    depth,
-                    depth_var,
-                    sem,
-                    _,
-                ) = render_probablistic_image_with_occgrid_test(
-                    1024,
-                    # scene
-                    radiance_field,
-                    estimator,
-                    rays,
-                    # rendering options
-                    near_plane=near_plane,
-                    render_step_size=render_step_size,
-                    render_bkgd=render_bkgd,
-                    cone_angle=cone_angle,
-                    alpha_thre=alpha_thre,
-                )
-                sems[i] = (
-                    sem.cpu()
-                    .numpy()
-                    .reshape(
-                        (
-                            int(height * scale),
-                            int(width * scale),
-                            radiance_field.num_semantic_classes,
-                        )
-                    )
-                )
-            else:
-                (
-                    rgb,
-                    rgb_var,
-                    acc,
-                    depth,
-                    depth_var,
-                    _,
-                ) = render_probablistic_image_with_occgrid_test(
-                    1024,
-                    # scene
-                    radiance_field,
-                    estimator,
-                    rays,
-                    # rendering options
-                    near_plane=near_plane,
-                    render_step_size=render_step_size,
-                    render_bkgd=render_bkgd,
-                    cone_angle=cone_angle,
-                    alpha_thre=alpha_thre,
-                )
+            (
+                rgb,
+                rgb_var,
+                acc,
+                depth,
+                depth_var,
+                _,
+            ) = render_probablistic_image_with_occgrid_test(
+                1024,
+                # scene
+                radiance_field,
+                estimator,
+                rays,
+                # rendering options
+                near_plane=near_plane,
+                render_step_size=render_step_size,
+                render_bkgd=render_bkgd,
+                cone_angle=cone_angle,
+                alpha_thre=alpha_thre,
+            )
 
             images[i] = (
                 rgb.cpu().numpy().reshape((int(height * scale), int(width * scale), 3))
@@ -543,7 +486,5 @@ class Dataset(torch.utils.data.Dataset):
                 acc.cpu().numpy().reshape((int(height * scale), int(width * scale)))
             )
 
-        if radiance_field.num_semantic_classes > 0:
-            return images, images_var, depths, depths_var, accs, sems
-        else:
-            return images, images_var, depths, depths_var, accs
+
+        return images, images_var, depths, depths_var, accs
