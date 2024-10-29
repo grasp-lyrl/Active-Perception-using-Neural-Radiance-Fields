@@ -92,12 +92,12 @@ Data will be saved in the `data/habitat_collection/`:
 
 ## Citation
 ```
-@misc{he2023active,
-      title={Active Perception using Neural Radiance Fields}, 
-      author={Siming He and Christopher D. Hsu and Dexter Ong and Yifei Simon Shao and Pratik Chaudhari},
-      year={2023},
-      eprint={2310.09892},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
+@inproceedings{siming2024active,
+  title={Active perception using neural radiance fields},
+  author={Siming, H and Hsu, Christopher D and Ong, Dexter and Shao, Yifei Simon and Chaudhari, Pratik},
+  booktitle={2024 American Control Conference (ACC)},
+  pages={4353--4358},
+  year={2024},
+  organization={IEEE}
 }
 ```
